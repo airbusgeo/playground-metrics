@@ -1,0 +1,2 @@
+--extra-index-url ${PRIVATE_PYPI_INDEX}
+.[docs]
