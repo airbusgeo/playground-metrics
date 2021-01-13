@@ -22,15 +22,13 @@ def geometry_factory(geom):
             (e.g. if provided with a :class:`shapely.geometry.MultiPolygon`)
 
     """
-    if isinstance(geom, shapely.geometry.Polygon):  # Might as well be a genuine polygon or a box
+    if not geom.is_empty and isinstance(geom, shapely.geometry.Polygon):  # Might as well be a genuine polygon or a box
         if shapely.geometry.box(*geom.bounds).equals(geom):  # It's a box
             return BoundingBox(*geom.bounds)
         else:  # It is a genuine polygon, we don't take any risk anyway
             return Polygon(list(iter(geom.exterior.coords)), *[list(iter(interior.coords))
                                                                for interior in geom.interiors])
-    elif isinstance(geom, shapely.geometry.Point):  # It's a simple point
-        if geom.is_empty:  # Assume infinity here because it likely is the centroid of an infinity Geometry
-            return Point(np.inf, np.inf)
+    elif not geom.is_empty and isinstance(geom, shapely.geometry.Point):  # It's a simple point
         return Point(geom.x, geom.y)
     else:
         raise ShapelySpecificTypeError('Resulting shapely.geometry ({}) '

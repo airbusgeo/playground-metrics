@@ -33,7 +33,7 @@ def convert_point_to_constant_box(input_array, box_size):
     return input_array
 
 
-def naive_compute_IoU_matrix(sorted_detections, ground_truths):
+def naive_compute_iou_matrix(sorted_detections, ground_truths):
     """Computes the iou scores between all pairs of geometries in a naive fashion.
 
     Args:
@@ -60,13 +60,13 @@ def naive_compute_IoU_matrix(sorted_detections, ground_truths):
     """
 
     # We prepare the IoU matrix (#detection, #gt)
-    IoU = np.zeros((sorted_detections.shape[0], len(ground_truths)))
+    iou = np.zeros((sorted_detections.shape[0], len(ground_truths)))
 
     # Naive iterative IoU matrix construction (Note: we iterate over the sorted detections)
     for k, ground_truth in enumerate(ground_truths):
         for m, detection in enumerate(sorted_detections):
-            IoU[m, k] = detection[0].intersection_over_union(ground_truth[0])
-    return IoU
+            iou[m, k] = detection[0].intersection_over_union(ground_truth[0])
+    return iou
 
 
 def naive_compute_distance_similarity_matrix(sorted_detections, ground_truths):
@@ -252,5 +252,5 @@ def naive_compute_constant_box_similarity_matrix(sorted_detections, ground_truth
         ndarray : An similarity matrix (#detections, #ground truth)
     """
 
-    return naive_compute_IoU_matrix(convert_point_to_constant_box(sorted_detections, box_size),
+    return naive_compute_iou_matrix(convert_point_to_constant_box(sorted_detections, box_size),
                                     convert_point_to_constant_box(ground_truths, box_size))

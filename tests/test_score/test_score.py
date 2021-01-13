@@ -2,34 +2,21 @@
 import pytest
 from playground_metrics.map_metric import MeanAveragePrecisionMetric
 from playground_metrics.match_detections import MatchEngineBase, MatchEngineIoU
-from tests.resources.xview_scoring.score import score
 import numpy as np
 
 # This breaks th xview equality test because the last gt (class 2) is never counted as a false negative because there
 # are no detections of this class. This makes a final mAP of 0.21 (AP = {0: 0.3333333333333333, 1: 0.3}), notice that
-# the class 2 is none-existent in this setting, however, in most cases, the bug would only heighten AP of classes which
+# the class 2 is non-existent in this setting, however, in most cases, the bug would only heighten AP of classes which
 # are present in ground truth but seldom predicted, like AP(0) which is absent from image 1 and has its AP increased)
 # when it should be 0.15 (AP = {0: 0.16666666666666666, 1: 0.3, 2: 0.0})
-#
-# detections = {0: np.array([[15, 0, 26, 5, 0.9, 0],
-#                            [11, 6, 20, 11, 0.5, 0],
-#                            [0, 0, 9, 5, 0.7, 0],
-#                            [23, 13, 29, 18, 0.25, 1]]),
-#               1: np.array([[0, 0, 3, 2, 0.7, 1],
-#                            [11, 6, 20, 11, 0.5, 1],
-#                            [23, 13, 29, 18, 0.25, 1],
-#                            [15, 0, 26, 5, 0.9, 1]])}
 
 detections = {0: np.array([[15, 0, 26, 5, 0.9, 0],
                            [11, 6, 20, 11, 0.5, 0],
-                           [11, 6, 20, 11, 0.5, 2],
                            [0, 0, 9, 5, 0.7, 0],
                            [23, 13, 29, 18, 0.25, 1]]),
               1: np.array([[0, 0, 3, 2, 0.7, 1],
                            [11, 6, 20, 11, 0.5, 1],
                            [23, 13, 29, 18, 0.25, 1],
-                           [23, 13, 29, 18, 0.25, 2],
-                           [15, 0, 26, 5, 0.9, 0],
                            [15, 0, 26, 5, 0.9, 1]])}
 
 
@@ -136,18 +123,6 @@ class TestScoreSynth:
         map2.update(detections[0], gt)
         assert np.isclose(map1.compute(), map2.compute())
 
-    def test_equality_pg_xview(self):
-        map1 = MeanAveragePrecisionMetric(0.01, 'xview')
-        map1.update(detections[0], gt)
-        map1.update(detections[1], gt)
-        map_ = map1.compute()
-        vals = score(0.01, gt_coords, gt_chips, gt_classes, fnames, detections_xview)
-        print('PG mAP')
-        print(map_)
-        print('xView mAP')
-        print(vals['map'])
-        assert np.isclose(map_, vals['map'])
-
     def test_accumulate_pg_coco(self):
         map1 = MeanAveragePrecisionMetric(0.01, 'coco')
         map1.update(detections[0], gt)
@@ -233,7 +208,7 @@ class TestUserMatchEngine:
     @pytest.mark.filterwarnings("always")
     def test_match_algorithm_warning(self):
         with pytest.warns(RuntimeWarning, match='Discrepancy between user provided match_algorithm'):
-            map = MeanAveragePrecisionMetric(0.5, 'xview', match_engine=MatchEngineIoU(0.5, 'coco'))
+            _ = MeanAveragePrecisionMetric(0.5, 'xview', match_engine=MatchEngineIoU(0.5, 'coco'))
 
 
 class TestGroundTruthLabel:
