@@ -2,7 +2,7 @@ import numpy as np
 from playground_metrics.match_detections import MatchEngineIoU
 from playground_metrics.utils.geometry_utils import convert_to_bounding_box
 
-from tests.resources.reference_functions import naive_compute_IoU_matrix, sort_detection_by_confidence
+from tests.resources.reference_functions import naive_compute_iou_matrix, sort_detection_by_confidence
 
 detections = np.concatenate((10 * np.array([[14.5, 0, 26, 5],
                                             [34, 41, 36, 43],
@@ -37,11 +37,11 @@ gt_mean_area = np.array([det[0].area for det in gt]).mean()
 class TestMatchEngineBbox:
     def test_rtree_iou_matrix(self):
         matcher = MatchEngineIoU(0.1, 'coco')
-        ref_IoU = naive_compute_IoU_matrix(sort_detection_by_confidence(detections), gt)
-        IoU = matcher.compute_similarity_matrix(detections, gt)
-        print(IoU)
-        print(ref_IoU)
-        assert np.all(IoU == ref_IoU)
+        ref_iou = naive_compute_iou_matrix(sort_detection_by_confidence(detections), gt)
+        iou = matcher.compute_similarity_matrix(detections, gt)
+        print(iou)
+        print(ref_iou)
+        assert np.all(iou == ref_iou)
 
     def test_match_non_unitary_at_001(self):
         matcher = MatchEngineIoU(0.01, 'non-unitary')
@@ -146,12 +146,12 @@ class TestMatchEngineBbox:
 class TestMatchEngineBboxIIoU:
     def test_rtree_iou_matrix(self):
         matcher = MatchEngineIoU(0.1, 'coco')
-        ref_IoU = naive_compute_IoU_matrix(sort_detection_by_confidence(detections), gt) * \
+        ref_iou = naive_compute_iou_matrix(sort_detection_by_confidence(detections), gt) * \
             (gt_mean_area / np.array([det[0].area for det in gt]))
-        IoU = matcher.compute_similarity_matrix(detections, gt, label_mean_area=gt_mean_area)
-        print(IoU)
-        print(ref_IoU)
-        assert np.all(IoU == ref_IoU)
+        iou = matcher.compute_similarity_matrix(detections, gt, label_mean_area=gt_mean_area)
+        print(iou)
+        print(ref_iou)
+        assert np.all(iou == ref_iou)
 
     def test_match_coco_at_001(self):
         matcher = MatchEngineIoU(0.01, 'coco')

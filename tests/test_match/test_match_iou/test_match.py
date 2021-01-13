@@ -26,11 +26,11 @@ class TestMatch:
     def test_rtree_iou_matrix(self):
         matcher_poly = MatchEngineIoU(0.1, 'coco')
         matcher_bbox = MatchEngineIoU(0.1, 'coco')
-        IoU_poly = matcher_poly.compute_similarity_matrix(detections_corr_poly, gt_corr_poly)
-        IoU_bbox = matcher_bbox.compute_similarity_matrix(detections_bbox, gt_bbox)
-        print(IoU_poly)
-        print(IoU_bbox)
-        assert np.all(IoU_poly == IoU_bbox)
+        iou_poly = matcher_poly.compute_similarity_matrix(detections_corr_poly, gt_corr_poly)
+        iou_bbox = matcher_bbox.compute_similarity_matrix(detections_bbox, gt_bbox)
+        print(iou_poly)
+        print(iou_bbox)
+        assert np.all(iou_poly == iou_bbox)
 
     def test_match_non_unitary_at_001(self):
         matcher_poly = MatchEngineIoU(0.01, 'non-unitary')
@@ -82,13 +82,13 @@ class TestMatchIIoU:
     def test_rtree_iou_matrix(self):
         matcher_poly = MatchEngineIoU(0.1, 'coco')
         matcher_bbox = MatchEngineIoU(0.1, 'coco')
-        IoU_poly = matcher_poly.compute_similarity_matrix(detections_corr_poly, gt_corr_poly,
+        iou_poly = matcher_poly.compute_similarity_matrix(detections_corr_poly, gt_corr_poly,
                                                           label_mean_area=gt_mean_area)
-        IoU_bbox = matcher_bbox.compute_similarity_matrix(detections_bbox, gt_bbox,
+        iou_bbox = matcher_bbox.compute_similarity_matrix(detections_bbox, gt_bbox,
                                                           label_mean_area=gt_mean_area)
-        print(IoU_poly)
-        print(IoU_bbox)
-        assert np.all(IoU_poly == IoU_bbox)
+        print(iou_poly)
+        print(iou_bbox)
+        assert np.all(iou_poly == iou_bbox)
 
     def test_match_coco_at_001(self):
         matcher_poly = MatchEngineIoU(0.01, 'coco')

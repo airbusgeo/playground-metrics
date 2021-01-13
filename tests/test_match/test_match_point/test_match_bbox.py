@@ -45,21 +45,21 @@ def th(request):
 class TestMatchEngineBboxConstantBox:
     def test_similarity(self, th):
         matcher = MatchEngineConstantBox(0.5, 'coco', th)
-        ref_IoU = naive_compute_constant_box_similarity_matrix(sort_detection_by_confidence(detections), gt, th)
-        IoU = matcher.compute_similarity_matrix(detections, gt)
-        print(IoU)
-        print(ref_IoU)
-        assert np.all(IoU == ref_IoU)
+        ref_iou = naive_compute_constant_box_similarity_matrix(sort_detection_by_confidence(detections), gt, th)
+        iou = matcher.compute_similarity_matrix(detections, gt)
+        print(iou)
+        print(ref_iou)
+        assert np.all(iou == ref_iou)
 
 
 class TestMatchEngineBboxPointInBox:
     def test_similarity(self):
         matcher = MatchEnginePointInBox('coco')
-        ref_IoU = naive_compute_point_in_box_distance_similarity_matrix(sort_detection_by_confidence(detections), gt)
-        IoU = matcher.compute_similarity_matrix(detections, gt)
-        print(IoU)
-        print(ref_IoU)
-        assert np.all(IoU == ref_IoU)
+        ref_iou = naive_compute_point_in_box_distance_similarity_matrix(sort_detection_by_confidence(detections), gt)
+        iou = matcher.compute_similarity_matrix(detections, gt)
+        print(iou)
+        print(ref_iou)
+        assert np.all(iou[np.logical_not(np.isinf(iou))] == ref_iou[np.logical_not(np.isinf(iou))])
 
     def test_match_coco(self):
         matcher = MatchEnginePointInBox('coco')
@@ -87,11 +87,11 @@ class TestMatchEngineBboxPointInBox:
 class TestMatchEngineBboxEuclidean:
     def test_similarity(self, th):
         matcher = MatchEngineEuclideanDistance(th, 'coco')
-        ref_IoU = naive_compute_threshold_distance_similarity_matrix(sort_detection_by_confidence(detections), gt, th)
-        IoU = matcher.compute_similarity_matrix(detections, gt)
-        print(IoU)
-        print(ref_IoU)
-        assert np.all(IoU == ref_IoU)
+        ref_iou = naive_compute_threshold_distance_similarity_matrix(sort_detection_by_confidence(detections), gt, th)
+        iou = matcher.compute_similarity_matrix(detections, gt)
+        print(iou)
+        print(ref_iou)
+        assert np.all(iou == ref_iou)
 
     def test_match_coco_at_100(self):
         matcher = MatchEngineEuclideanDistance(100, 'coco')

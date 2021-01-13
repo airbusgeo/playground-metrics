@@ -2,7 +2,7 @@ import numpy as np
 from playground_metrics.match_detections import MatchEngineIoU
 
 
-def add_confidence_from_max_IoU(detections, ground_truths):
+def add_confidence_from_max_iou(detections, ground_truths):
     r"""Compute confidence scores for detections based on the maximum IoU between detections and ground truths.
 
     Args:
@@ -58,7 +58,7 @@ def add_confidence_from_max_IoU(detections, ground_truths):
 
     """
     match_engine = MatchEngineIoU(0.5, 'coco')
-    IoU = match_engine.compute_similarity_matrix(np.insert(detections, 1, np.linspace(1, 0,
+    iou = match_engine.compute_similarity_matrix(np.insert(detections, 1, np.linspace(1, 0,
                                                                                       detections.shape[0]), axis=1),
                                                  ground_truths)
-    return np.insert(detections, 1, np.max(IoU, axis=1), axis=1)
+    return np.insert(detections, 1, np.max(iou, axis=1), axis=1)

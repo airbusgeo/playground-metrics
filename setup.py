@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 REQUIRED_PACKAGES = [
     'numpy>=1.15.4',
-    'shapely>=1.6.4.post1',
+    'shapely~=1.7',
     'rtree>=0.8.3',
     'six'
 ]
@@ -24,9 +24,7 @@ setup(
     license='MIT',
     install_requires=REQUIRED_PACKAGES,
     extras_require={'tests': ['pytest',
-                              'tqdm',
-                              'pytest-cov',
-                              'anybadge'],
+                              'pytest-cov'],
                     'tests_visualisation_utility': ['descartes'],
                     'docs': ['sphinx',
                              'sphinx-rtd-theme',
