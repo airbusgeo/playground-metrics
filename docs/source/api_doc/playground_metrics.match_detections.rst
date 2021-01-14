@@ -1,5 +1,5 @@
-map\_metric\_api.match\_detections
-=========================================
+playground\_metrics.match\_detections
+=====================================
 
 Usage
 -----

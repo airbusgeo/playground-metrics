@@ -1,7 +1,8 @@
-mAP metric API
-==============
+Playground metrics API
+======================
 
-The *mAP* API is accessible from the :mod:`~playground_metrics.map_metric` and :mod:`~playground_metrics.match_detections` module.
+The *API* is accessible from the :mod:`~playground_metrics.map_metric` and :mod:`~playground_metrics.match_detections`
+module.
 
 For more information on the role of each module see :ref:`map_computation`.
 
@@ -10,7 +11,8 @@ For a basic usage example, please see
 Modules
 -------
 
-The :mod:`~playground_metrics.match_detections` module exposes the matching API used by :mod:`~playground_metrics.map_metric`.
+The :mod:`~playground_metrics.match_detections` module exposes the matching API used by
+:mod:`~playground_metrics.map_metric`.
 
 
 Main modules

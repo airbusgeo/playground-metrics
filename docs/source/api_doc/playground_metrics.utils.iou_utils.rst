@@ -1,5 +1,5 @@
-map\_metric\_api.utils.iou\_utils
-===================================
+playground\_metrics.utils.iou\_utils
+====================================
 
 .. automodule:: playground_metrics.utils.iou_utils
     :members:

@@ -1,5 +1,5 @@
-map\_metric\_api.utils.geometry\_utils
-======================================
+playground\_metrics.utils.geometry\_utils
+=========================================
 
 Public geometry API
 -------------------
