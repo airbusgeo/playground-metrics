@@ -20,6 +20,11 @@ jobs:
         os: [Ubuntu, Windows, macOS]
         python_version:
           ["3.6", "3.7", "3.8", "3.9"]
+        exclude:
+          # This is failing due to shapely not being packaged for python3.9 on macOS.
+          # https://github.com/Toblerity/Shapely/issues/1040
+          - os: macOS
+            python_version: 3.9
 
     steps:
       - uses: actions/checkout@v1
