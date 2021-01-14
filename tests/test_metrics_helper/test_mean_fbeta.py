@@ -52,7 +52,7 @@ class TestMeanFBetaAtThresholds:
         f2_computer = MeanFBetaAtThresholds(beta=2, thresholds=thresholds)
         n_samples = 12
         n_classes = 3
-        f2_per_class = dict([(i, 0.0) for i in range(n_classes)])
+        f2_per_class = {i: 0.0 for i in range(n_classes)}
 
         for i in range(n_samples):
             if i % 2 == 0:
@@ -90,7 +90,7 @@ class TestMeanFBetaAtThresholds:
                 f2_computer.update(detections=[[0, 0, 10, 8.3, 0.99, 0]],
                                    ground_truths=[[0, 0, 10, 10, 0],
                                                   [120, 120, 122, 122, 0]])
-                # f2 = 5 * Pr * R / (4 * Pr + R)
+                # f2 is defined as 5 * Pr * R / (4 * Pr + R)
                 v = 5 * 1.0 * 0.5 / (4 * 1.0 + 0.5)
                 f2_true += v * 4.0 / len(thresholds) / n_samples
             else:
@@ -103,7 +103,7 @@ class TestMeanFBetaAtThresholds:
     def test_itegration_on_ship_data(self):
         data = np.load(os.path.dirname(__file__) + "/../resources/data/ships/ships_data.npz", allow_pickle=True)
         # f2 for complete data:
-        # f2_true_all = 0.6428503771289549
+        # f2_true_all is 0.6428503771289549
         # f2 for first 1000 entries:
         f2_true_1000 = 0.6395173984808165
 
@@ -124,7 +124,7 @@ class TestMeanFBetaAtThresholds:
 
         assert set(all_preds.keys()) == set(all_gt_targets.keys())
 
-        tile_ids = sorted(list(all_gt_targets.keys()))
+        tile_ids = sorted(all_gt_targets.keys())
         # Define decision thresholds
         thresholds = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 

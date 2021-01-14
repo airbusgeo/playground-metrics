@@ -1,21 +1,21 @@
-import numpy as np
-import pytest
 from contextlib import contextmanager
 
+import pytest
+import numpy as np
+
 from playground_metrics.utils.geometry_utils import Point, Polygon, BoundingBox, convert_to_bounding_box, \
-    convert_to_polygon, convert_to_point, get_type_and_convert
-from playground_metrics.utils.geometry_utils.geometry import geometry_factory
-from playground_metrics.utils.exception import InvalidGeometryError, ShapelySpecificTypeError
+    convert_to_polygon, get_type_and_convert
+from playground_metrics.utils.exception import InvalidGeometryError
 
 
 @contextmanager
-def not_raises(ExpectedException):
+def not_raises(expected_exception):
     try:
         yield
-    except ExpectedException as err:  # noqa: F841
+    except expected_exception as err:  # noqa: F841
         raise AssertionError(
             "Did raise exception {0} when it should not!".format(
-                repr(ExpectedException)
+                repr(expected_exception)
             )
         )
     except Exception as err:
@@ -61,9 +61,6 @@ class TestOp:
                 assert np.all(geom._coordinates[k] == geom._coordinates.__getattr__(k))
             else:
                 assert geom._coordinates[k] == geom._coordinates.__getattr__(k)
-            # Not true anymore with FastBoundingBox
-            # with pytest.raises(AttributeError, match='object has no attribute'):
-            #     geom.__getattribute__(k)
             if isinstance(geom._coordinates[k], np.ndarray) and \
                     isinstance(geom._coordinates.__getattr__(k), np.ndarray):
                 assert np.all(geom._coordinates[k] == geom.__getattr__(k))

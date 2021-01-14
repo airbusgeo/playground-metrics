@@ -1,8 +1,8 @@
 import numpy as np
+from tests.resources.reference_functions import naive_compute_iou_matrix, sort_detection_by_confidence
+
 from playground_metrics.match_detections import MatchEngineIoU
 from playground_metrics.utils.geometry_utils import convert_to_bounding_box
-
-from tests.resources.reference_functions import naive_compute_iou_matrix, sort_detection_by_confidence
 
 detections = np.concatenate((10 * np.array([[14.5, 0, 26, 5],
                                             [34, 41, 36, 43],

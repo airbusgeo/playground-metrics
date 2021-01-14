@@ -6,13 +6,14 @@ If one wants to integrate the module into a framework to use it as a validation 
 :class:`~MeanAveragePrecisionMetric` class described below should be wrappped accordingly to follow the framework
 convention.
 """
-from playground_metrics.match_detections import MatchEngineIoU
-import numpy as np
-from collections import defaultdict
 import warnings
+from collections import defaultdict
 
-from playground_metrics.utils.geometry_utils import get_type_and_convert
-from playground_metrics.utils import to_builtin, to_list
+import numpy as np
+
+from .utils import to_builtin, to_list
+from .match_detections import MatchEngineIoU
+from .utils.geometry_utils import get_type_and_convert
 
 
 class MeanAveragePrecisionMetric:

@@ -139,9 +139,9 @@ class Polygon(Geometry):
 class FastBoundingBox(AbstractBaseGeometry):
     r"""A fast bounding box geometry.
 
-    It differs from the canonical :class:`~playground_metrics.utils.geometry_utils.geometry.ShapelyBoundingBox` by delaying
-    the shapely internal creation only to when it really is needed and tries to perform fast box-to-box operation
-    whenever possible.
+    It differs from the canonical :class:`~playground_metrics.utils.geometry_utils.geometry.ShapelyBoundingBox` by
+    delaying the shapely internal creation only to when it really is needed and tries to perform fast box-to-box
+    operation whenever possible.
 
     Args:
         xmin (float): The left-most coordinate

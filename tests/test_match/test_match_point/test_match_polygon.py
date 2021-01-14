@@ -1,13 +1,12 @@
-import numpy as np
 import pytest
-from playground_metrics.match_detections import MatchEnginePointInBox, MatchEngineConstantBox, \
-    MatchEngineEuclideanDistance
-
+import numpy as np
 from tests.resources.reference_functions import bbox_to_polygon, sort_detection_by_confidence, \
     naive_compute_point_in_box_distance_similarity_matrix, naive_compute_constant_box_similarity_matrix, \
     naive_compute_threshold_distance_similarity_matrix
-
 from tests.test_match.test_match_point.test_match_bbox import detections, gt
+
+from playground_metrics.match_detections import MatchEnginePointInBox, MatchEngineConstantBox, \
+    MatchEngineEuclideanDistance
 
 detections = np.array([[bbox_to_polygon(detections[i, :]), detections[i, 1]] for i in range(detections.shape[0])])
 gt = np.array([[bbox_to_polygon(gt[i, :])] for i in range(gt.shape[0])])

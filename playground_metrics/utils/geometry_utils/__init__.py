@@ -1,15 +1,11 @@
+from collections.abc import Sized
+
 import numpy as np
-
-try:
-    import collections.abc as abcollections
-except ImportError:
-    import collections as abcollections
-
-import shapely.geometry
 import shapely.ops
+import shapely.geometry
 
-from playground_metrics.utils.exception import InvalidGeometryError
-from playground_metrics.utils.geometry_utils.geometry import Point, Polygon, BoundingBox, Geometry
+from ..exception import InvalidGeometryError
+from .geometry import Point, Polygon, BoundingBox, Geometry
 
 
 # Helpers functions
@@ -89,7 +85,7 @@ def get_type_and_convert(input_array, trim_invalid_geometry=False, autocorrect_i
             # We check the first element to decide. One might argue that it is not robust to a mixed-type input array,
             # that is true but the conversion functions implicitly assumes that the input array is of fixed-type for
             # performances issues.
-            if isinstance(input_array[0, 0], abcollections.Sized):
+            if isinstance(input_array[0, 0], Sized):
                 # Reasonable guess is the first element is a list or a ndarray -> It's a Polygon ndarray
                 type_ = 'polygon'
                 # Convert rings to Polygon

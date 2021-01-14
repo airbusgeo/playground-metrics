@@ -1,10 +1,8 @@
 import numpy as np
-from playground_metrics.match_detections import MatchEngineIoU
-
-from tests.resources.reference_functions import bbox_to_polygon, \
-    naive_compute_iou_matrix, sort_detection_by_confidence
-
+from tests.resources.reference_functions import bbox_to_polygon, naive_compute_iou_matrix, sort_detection_by_confidence
 from tests.test_match.test_match_iou.test_match_bbox import detections, gt, gt_mean_area
+
+from playground_metrics.match_detections import MatchEngineIoU
 
 detections = np.array([[bbox_to_polygon(detections[i, :]), detections[i, 1]] for i in range(detections.shape[0])])
 gt = np.array([[bbox_to_polygon(gt[i, :])] for i in range(gt.shape[0])])

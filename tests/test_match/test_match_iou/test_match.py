@@ -1,12 +1,7 @@
-import numpy as np
-
 import os.path
 
+import numpy as np
 from pytest import raises
-
-from playground_metrics.match_detections import MatchEngineIoU, MatchEngineBase
-from playground_metrics.utils.geometry_utils import convert_to_bounding_box
-
 from tests.test_match.test_match_iou.test_match_bbox import gt_mean_area
 from tests.test_match.test_match_iou.test_match_bbox import detections as detections_bbox
 from tests.test_match.test_match_iou.test_match_bbox import gt as gt_bbox
@@ -14,6 +9,9 @@ from tests.test_match.test_match_iou.test_match_polygon import detections as det
 from tests.test_match.test_match_iou.test_match_polygon import gt as gt_poly
 from tests.test_match.test_match_iou.test_match_polygon import detections as detections_corr_poly
 from tests.test_match.test_match_iou.test_match_polygon import gt as gt_corr_poly
+
+from playground_metrics.match_detections import MatchEngineIoU, MatchEngineBase
+from playground_metrics.utils.geometry_utils import convert_to_bounding_box
 
 
 class TestMatch:

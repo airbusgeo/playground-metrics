@@ -1,5 +1,6 @@
 import numpy as np
-from playground_metrics.match_detections import MatchEngineIoU
+
+from ..match_detections import MatchEngineIoU
 
 
 def add_confidence_from_max_iou(detections, ground_truths):
