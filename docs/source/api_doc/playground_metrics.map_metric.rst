@@ -1,5 +1,5 @@
-map\_metric\_api.map\_metric
-===================================
+playground\_metrics.map\_metric
+===============================
 
 Usage
 -----
