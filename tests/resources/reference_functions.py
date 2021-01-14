@@ -1,6 +1,6 @@
 import numpy as np
 
-from playground_metrics.utils.geometry_utils import Polygon, BoundingBox, Point
+from playground_metrics.utils.geometry_utils import Polygon, BoundingBox
 
 
 def bbox_to_polygon(bbox):

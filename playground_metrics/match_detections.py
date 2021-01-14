@@ -1,14 +1,11 @@
 """Implement the public interface to match a set of detections and ground truths."""
 
-from abc import ABCMeta, abstractmethod
-
-import numpy as np
+from abc import ABC, abstractmethod
 
 import rtree
+import numpy as np
 
-from six import with_metaclass
-
-from playground_metrics.utils.geometry_utils import BoundingBox, Polygon, Point
+from .utils.geometry_utils import BoundingBox, Polygon, Point
 
 
 def _make_rtree(detections, transform_fn):
@@ -33,7 +30,7 @@ def _make_rtree(detections, transform_fn):
     return rtree.index.Index(enumerate_detections(detections), properties=rtree_index_prop)
 
 
-class MatchEngineBase(with_metaclass(ABCMeta, object)):
+class MatchEngineBase(ABC):
     """Match detection with their ground truth according a similarity matrix and a detection confidence score.
 
     Matching may be done using coco algorithm or xView algorithm (which yield different matches as described for an
@@ -50,8 +47,9 @@ class MatchEngineBase(with_metaclass(ABCMeta, object)):
     """
 
     def __init__(self, match_algorithm):
-        assert match_algorithm in ['coco', 'xview', 'non-unitary'], \
-            "match_algorithm must be either coco, xview or non-unitary"
+        if match_algorithm not in ['coco', 'xview', 'non-unitary']:
+            raise ValueError("match_algorithm must be either coco, xview or non-unitary")
+
         self.match_algorithm = match_algorithm
 
         # Authorized geometric types fot this match engine
@@ -154,9 +152,9 @@ class MatchEngineBase(with_metaclass(ABCMeta, object)):
         raise NotImplementedError
 
     def match(self, detections, ground_truths, label_mean_area=None):  # noqa: D205,D400
-        r"""Match detections :class:`~playground_metrics.utils.geometry_utils.geometry.Geometry`
-        with ground truth :class:`~playground_metrics.utils.geometry_utils.geometry.Geometry` at a given similarity matrix
-        and trim method using either Coco algorithm, xView algorithm or a naive *non-unitary* match.
+        r"""Match detections :class:`~playground_metrics.utils.geometry_utils.geometry.Geometry` with ground truth
+        :class:`~playground_metrics.utils.geometry_utils.geometry.Geometry` at a given similarity matrix and trim
+        method using either Coco algorithm, xView algorithm or a naive *non-unitary* match.
 
         Args:
             detections (ndarray, list) : A ndarray of detections stored as:
@@ -190,12 +188,12 @@ class MatchEngineBase(with_metaclass(ABCMeta, object)):
             return np.zeros((detections.shape[0], 0))
 
         # Geometric static typing
-        if not all([isinstance(geom, self._detection_types) for geom in detections[:, 0]]):
+        if not all((isinstance(geom, self._detection_types) for geom in detections[:, 0])):
             raise TypeError('Invalid geometric type provided in '
                             'detections, expected to be on of {}'
                             ''.format(' '.join(['{}'.format(geom_type.__name__)
                                                 for geom_type in self._detection_types])))
-        if not all([isinstance(geom, self._ground_truth_types) for geom in ground_truths[:, 0]]):
+        if not all((isinstance(geom, self._ground_truth_types) for geom in ground_truths[:, 0])):
             raise TypeError('Invalid geometric type provided in '
                             'detections, expected to be on of {}'
                             ''.format(' '.join(['{}'.format(geom_type.__name__)
@@ -222,7 +220,6 @@ class MatchEngineBase(with_metaclass(ABCMeta, object)):
     def _sort_detection_by_confidence(detections):
         # We sort the detection by decreasing confidence
         sort_indices = np.argsort(detections[:, 1])[::-1]
-        # sort_indices = np.arange(detections.shape[0])
         return detections[sort_indices, :]
 
     @staticmethod
@@ -243,32 +240,31 @@ class MatchEngineBase(with_metaclass(ABCMeta, object)):
         if similarity_matches.shape[1] == 0:  # No matches at all
             return match_matrix
 
-        forward = dict(((match[0, 0], match[1, :])
-                        for match in np.hsplit(similarity_matches,
-                                               np.where(np.diff(similarity_matches[0, :]) != 0)[0] + 1)))
+        forward = {match[0, 0]: match[1, :]
+                   for match in np.hsplit(similarity_matches, np.where(np.diff(similarity_matches[0, :]) != 0)[0] + 1)}
         similarity_matches_by_gt = similarity_matches[:, np.argsort(similarity_matches[1, :])]
-        backward = dict(((match[1, 0], match[0, :])
-                         for match in np.hsplit(similarity_matches_by_gt,
-                                                np.where(np.diff(similarity_matches_by_gt[1, :]) != 0)[0] + 1)))
+        backward = {match[1, 0]: match[0, :]
+                    for match in np.hsplit(similarity_matches_by_gt,
+                                           np.where(np.diff(similarity_matches_by_gt[1, :]) != 0)[0] + 1)}
 
-        for l in range(similarity_matrix.shape[0]):
+        for k in range(similarity_matrix.shape[0]):
             # For each detection we select its ground truth match
-            detection_matches = forward.get(l, np.zeros((0, 0)))
+            detection_matches = forward.get(k, np.zeros((0, 0)))
 
             # If we don't have anything left to match -> skip
             if detection_matches.size == 0:
                 continue
 
             # We select the biggest similarity_matrix over them
-            k = np.argmax(similarity_matrix[l, detection_matches])
-            m = detection_matches[k]
+            m = np.argmax(similarity_matrix[k, detection_matches])
+            n = detection_matches[m]
 
             # We delete the ground truth column index from future match testing
-            for d in backward[m]:
-                forward[d] = forward[d][forward[d] != m]
+            for d in backward[n]:
+                forward[d] = forward[d][forward[d] != n]
 
             # We set the match flag to 1
-            match_matrix[l, m] = 1
+            match_matrix[k, n] = 1
 
         return match_matrix
 
@@ -292,26 +288,25 @@ class MatchEngineBase(with_metaclass(ABCMeta, object)):
 
         ground_truth_match_vector = [0] * similarity_matrix.shape[1]
 
-        forward = dict(((match[0, 0], match[1, :])
-                        for match in np.hsplit(similarity_matches,
-                                               np.where(np.diff(similarity_matches[0, :]) != 0)[0] + 1)))
+        forward = {match[0, 0]: match[1, :]
+                   for match in np.hsplit(similarity_matches, np.where(np.diff(similarity_matches[0, :]) != 0)[0] + 1)}
 
-        for l in range(similarity_matrix.shape[0]):
+        for k in range(similarity_matrix.shape[0]):
             # For each detection we select its ground truth match
-            detection_matches = forward.get(l, np.zeros((0, 0)))
+            detection_matches = forward.get(k, np.zeros((0, 0)))
 
             # If we don't have anything left to match -> skip
             if detection_matches.size == 0:
                 continue
 
             # We select the biggest similarity_matrix over them
-            k = np.argmax(similarity_matrix[l, detection_matches])
-            m = detection_matches[k]
+            m = np.argmax(similarity_matrix[k, detection_matches])
+            n = detection_matches[m]
 
-            if ground_truth_match_vector[m] == 0:
+            if ground_truth_match_vector[n] == 0:
                 # We match the detection and the ground truth
-                ground_truth_match_vector[m] = 1
-                match_matrix[l, m] = 1
+                ground_truth_match_vector[n] = 1
+                match_matrix[k, n] = 1
 
         return match_matrix
 
@@ -351,7 +346,7 @@ class MatchEngineIoU(MatchEngineBase):
 
         self.threshold = threshold
 
-    def _rtree_compute_IoU_matrix(self, detections, ground_truths, label_mean_area=None):  # noqa: D205,D400
+    def _rtree_compute_iou_matrix(self, detections, ground_truths, label_mean_area=None):  # noqa: D205,D400
         r"""Compute the iou scores between all pairs of :class:`~playground_metrics.utils.geometry_utils.geometry.Geometry`
         with an Rtree on detections to speed up computation.
 
@@ -378,7 +373,7 @@ class MatchEngineIoU(MatchEngineBase):
 
         """
         # We prepare the IoU matrix (#detection, #gt)
-        IoU = np.zeros((detections.shape[0], len(ground_truths)))
+        iou = np.zeros((detections.shape[0], len(ground_truths)))
 
         detections = self._sort_detection_by_confidence(detections)
 
@@ -392,14 +387,14 @@ class MatchEngineIoU(MatchEngineBase):
             overlapping_detections = rtree_index.intersection(ground_truth[0].bounds, objects=False)
             for m in overlapping_detections:
                 if label_mean_area is not None:
-                    IoU[m, k] = (label_mean_area / ground_truth[0].area) * \
+                    iou[m, k] = (label_mean_area / ground_truth[0].area) * \
                         detections[m, 0].intersection_over_union(ground_truth[0])
                 else:
-                    IoU[m, k] = detections[m, 0].intersection_over_union(ground_truth[0])
+                    iou[m, k] = detections[m, 0].intersection_over_union(ground_truth[0])
 
-        return IoU
+        return iou
 
-    compute_similarity_matrix = _rtree_compute_IoU_matrix
+    compute_similarity_matrix = _rtree_compute_iou_matrix
 
     def trim_similarity_matrix(self, similarity_matrix, detections, ground_truths, label_mean_area=None):
         r"""Compute an array containing the indices in columns of similarity passing the first trimming.

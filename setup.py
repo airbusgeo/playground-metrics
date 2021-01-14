@@ -6,7 +6,6 @@ REQUIRED_PACKAGES = [
     'numpy>=1.15.4',
     'shapely~=1.7',
     'rtree>=0.8.3',
-    'six'
 ]
 
 with io.open('playground_metrics/__init__.py', 'rt', encoding='utf8') as f:
@@ -23,10 +22,18 @@ setup(
     author_email='jeffaudi@gmail.com',
     license='MIT',
     install_requires=REQUIRED_PACKAGES,
-    extras_require={'tests': ['pytest',
+    extras_require={'lint': ['nox',
+                             'flake8',
+                             'flake8-docstrings',
+                             'pep8-naming',
+                             'flake8-mutable',
+                             'flake8-eradicate',
+                             'flake8-comprehensions',
+                             'flake8-import-order'],
+                    'tests': ['nox',
+                              'pytest',
                               'pytest-cov'],
                     'tests_visualisation_utility': ['descartes'],
                     'docs': ['sphinx',
-                             'sphinx-rtd-theme',
-                             'recommonmark']},
+                             'sphinx-rtd-theme']},
     zip_safe=False)

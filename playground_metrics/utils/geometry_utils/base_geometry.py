@@ -1,20 +1,13 @@
-try:
-    from collections.abc import MutableMapping
-except ImportError:  # Python 2
-    from collections import MutableMapping
-
-import abc
+from abc import ABC, abstractmethod
+from collections.abc import MutableMapping
 
 import numpy as np
 import shapely.geometry
 
-from six import add_metaclass
-
-from playground_metrics.utils.exception import InvalidGeometryError
+from ..exception import InvalidGeometryError
 
 
-@add_metaclass(abc.ABCMeta)
-class AbstractBaseGeometry(object):
+class AbstractBaseGeometry(ABC):
     r"""Abstract base class for every Geometry types.
 
     It gives exepcted valid interfaces of every geometric types,
@@ -58,25 +51,25 @@ class AbstractBaseGeometry(object):
                 raise AttributeError('\'{}\' object has no attribute \'{}\''.format(self.__class__.__name__, item))
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def is_empty(self):
         r"""bool: Whether the feature's `interior` and `boundary` (in point set terms) coincide with the empty set."""
         return NotImplemented
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def area(self):
         r"""float: The area of the object."""
         return NotImplemented
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def bounds(self):
         r"""(float, float, float, float): A ``(minx, miny, maxx, maxy)`` tuple of coordinates that bound the object."""
         return NotImplemented
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def centroid(self):  # noqa: D205,D400
         r""":class:`~playground_metrics.utils.geometry_utils.geometry.Point`:
         The objects centroid as a Geometry type object.
@@ -100,7 +93,7 @@ class AbstractBaseGeometry(object):
         else:
             return NotImplemented
 
-    @abc.abstractmethod
+    @abstractmethod
     def equals(self, other):  # noqa: D205,D400
         r"""Return ``True`` if the set-theoretic `boundary`, `interior`, and `exterior` of the object coincide with
         those of the other.
@@ -115,7 +108,7 @@ class AbstractBaseGeometry(object):
         """
         return NotImplemented
 
-    @abc.abstractmethod
+    @abstractmethod
     def distance(self, *others):  # noqa: D205,D400
         r"""Return the euclidean distance between the object centroid and the `other` object centroid or
         a tuple of distance if multiple input were given.
@@ -131,7 +124,7 @@ class AbstractBaseGeometry(object):
         """
         return NotImplemented
 
-    @abc.abstractmethod
+    @abstractmethod
     def intersection(self, *others):  # noqa: D205,D400
         r"""Return a representation of the intersection of this object with the `other` geometric object or a tuple
         of intersection if multiple input were given.
@@ -147,7 +140,7 @@ class AbstractBaseGeometry(object):
         """
         return NotImplemented
 
-    @abc.abstractmethod
+    @abstractmethod
     def intersection_over_union(self, *others):  # noqa: D205,D400
         r"""Return a representation of the intersection-over-union of this object with the `other` geometric object or
         a tuple of intersection-over-union if multiple input were given (c.f. :ref:`iou`).
@@ -164,7 +157,6 @@ class AbstractBaseGeometry(object):
         return NotImplemented
 
 
-@add_metaclass(abc.ABCMeta)
 class BaseGeometry(AbstractBaseGeometry):
     r"""Abstract base class for every Geometry types.
 
@@ -337,7 +329,7 @@ class BaseGeometry(AbstractBaseGeometry):
             return tuple(out)
 
     @classmethod
-    @abc.abstractmethod
+    @abstractmethod
     def from_shapely(cls, geom):
         r"""Perform the inverse mapping from a shapely object to a Geometry type.
 
