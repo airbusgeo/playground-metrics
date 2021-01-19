@@ -1,6 +1,8 @@
 Playground mAP scoring python API
 =================================
 
+Jump to the `complete documentation <https://playground-metrics.readthedocs.io/en/latest/>`_ on ReadTheDocs.
+
 mAP stands for *mean average precision* and is a common metric in detection tasks and challenges.
 
 In an effort to standardize evaluation tasks to implement efficient benchmarkings of algorithms, the following module
