@@ -33,7 +33,7 @@ setup(
     description='Playground framework agnostic detection mAP scoring library.',
     include_package_data=True,
     author='Airbus DS GEO',
-    author_email='jeffaudi@gmail.com',
+    author_email='jeffaudi.airbus@gmail.com',
     license='MIT',
     install_requires=REQUIRED_PACKAGES,
     extras_require={'lint': ['nox',
