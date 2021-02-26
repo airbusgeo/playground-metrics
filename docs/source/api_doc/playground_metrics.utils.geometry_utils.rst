@@ -1,13 +1,13 @@
-playground\_metrics.utils.geometry\_utils
-=========================================
+playground\_metrics.utils.geometry
+==================================
 
-Public geometry API
--------------------
+Geometry helpers
+----------------
 
-Geometry types
-**************
+Functional helpers
+******************
 
-.. automodule:: playground_metrics.utils.geometry_utils.geometry
+.. automodule:: playground_metrics.utils.geometry
         :member-order: bysource
         :members:
         :undoc-members:
@@ -16,17 +16,7 @@ Geometry types
 Conversion helpers
 ******************
 
-.. automodule:: playground_metrics.utils.geometry_utils
+.. automodule:: playground_metrics.utils.conversion
         :members:
         :undoc-members:
         :show-inheritance:
-
-
-Internals documentation
------------------------
-
-.. automodule:: playground_metrics.utils.geometry_utils.base_geometry
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
