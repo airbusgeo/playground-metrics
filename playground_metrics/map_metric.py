@@ -13,7 +13,7 @@ import numpy as np
 
 from .utils import to_builtin, to_list
 from .match_detections import MatchEngineIoU
-from .utils.geometry_utils import get_type_and_convert
+from .utils.conversion import get_type_and_convert
 
 
 class MeanAveragePrecisionMetric:

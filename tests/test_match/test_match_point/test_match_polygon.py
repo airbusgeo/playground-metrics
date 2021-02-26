@@ -66,7 +66,7 @@ class TestMatchEnginePolygonEuclidean:
         iou = matcher.compute_similarity_matrix(detections, gt)
         print(iou)
         print(ref_iou)
-        assert np.all(iou == ref_iou)
+        assert np.all(iou[np.logical_not(np.isinf(iou))] == ref_iou[np.logical_not(np.isinf(iou))])
 
     def test_match_coco_at_100(self):
         matcher = MatchEngineEuclideanDistance(100, 'coco')

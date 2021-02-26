@@ -1,9 +1,10 @@
 # flake8: noqa: F841
-import numpy as np
-import pytest
 from contextlib import contextmanager
 
-from playground_metrics.utils.geometry_utils import Point, Polygon, BoundingBox
+import pytest
+import numpy as np
+from pygeos import box, polygons, points
+
 from playground_metrics.match_detections import MatchEngineIoU, MatchEngineConstantBox, MatchEngineEuclideanDistance, \
     MatchEnginePointInBox
 
@@ -24,37 +25,37 @@ def not_raises(ExpectedException):
         )
 
 
-det_bbox = np.array([[BoundingBox(0, 0, 1, 1), 0.9, 0]], dtype=np.dtype('O'))
-det_poly = np.array([[Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0]], dtype=np.dtype('O'))
-det_point = np.array([[Point(0, 0), 0.9, 0]], dtype=np.dtype('O'))
+det_bbox = np.array([[box(0, 0, 1, 1), 0.9, 0]], dtype=np.dtype('O'))
+det_poly = np.array([[polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0]], dtype=np.dtype('O'))
+det_point = np.array([[points(0, 0), 0.9, 0]], dtype=np.dtype('O'))
 
-gt_bbox = np.array([[BoundingBox(0, 0, 1, 1), 0]], dtype=np.dtype('O'))
-gt_poly = np.array([[Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0]], dtype=np.dtype('O'))
-gt_point = np.array([[Point(0, 0), 0]], dtype=np.dtype('O'))
-
-
-det_bbox_poly = np.array([[BoundingBox(0, 0, 1, 1), 0.9, 0],
-                          [Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0]], dtype=np.dtype('O'))
-det_bbox_point = np.array([[BoundingBox(0, 0, 1, 1), 0.9, 0],
-                           [Point(0, 0), 0.9, 0]], dtype=np.dtype('O'))
-det_poly_point = np.array([[Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0],
-                           [Point(0, 0), 0.9, 0]], dtype=np.dtype('O'))
-
-gt_bbox_poly = np.array([[BoundingBox(0, 0, 1, 1), 0],
-                         [Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0]], dtype=np.dtype('O'))
-gt_bbox_point = np.array([[BoundingBox(0, 0, 1, 1), 0],
-                          [Point(0, 0), 0]], dtype=np.dtype('O'))
-gt_poly_point = np.array([[Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0],
-                          [Point(0, 0), 0]], dtype=np.dtype('O'))
+gt_bbox = np.array([[box(0, 0, 1, 1), 0]], dtype=np.dtype('O'))
+gt_poly = np.array([[polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0]], dtype=np.dtype('O'))
+gt_point = np.array([[points(0, 0), 0]], dtype=np.dtype('O'))
 
 
-det_bbox_poly_point = np.array([[BoundingBox(0, 0, 1, 1), 0.9, 0],
-                                [Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0],
-                                [Point(0, 0), 0.9, 0]], dtype=np.dtype('O'))
+det_bbox_poly = np.array([[box(0, 0, 1, 1), 0.9, 0],
+                          [polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0]], dtype=np.dtype('O'))
+det_bbox_point = np.array([[box(0, 0, 1, 1), 0.9, 0],
+                           [points(0, 0), 0.9, 0]], dtype=np.dtype('O'))
+det_poly_point = np.array([[polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0],
+                           [points(0, 0), 0.9, 0]], dtype=np.dtype('O'))
 
-gt_bbox_poly_point = np.array([[BoundingBox(0, 0, 1, 1), 0],
-                               [Polygon([[0, 0], [0, 1], [1, 1], [1, 0]]), 0],
-                               [Point(0, 0), 0]], dtype=np.dtype('O'))
+gt_bbox_poly = np.array([[box(0, 0, 1, 1), 0],
+                         [polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0]], dtype=np.dtype('O'))
+gt_bbox_point = np.array([[box(0, 0, 1, 1), 0],
+                          [points(0, 0), 0]], dtype=np.dtype('O'))
+gt_poly_point = np.array([[polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0],
+                          [points(0, 0), 0]], dtype=np.dtype('O'))
+
+
+det_bbox_poly_point = np.array([[box(0, 0, 1, 1), 0.9, 0],
+                                [polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0.9, 0],
+                                [points(0, 0), 0.9, 0]], dtype=np.dtype('O'))
+
+gt_bbox_poly_point = np.array([[box(0, 0, 1, 1), 0],
+                               [polygons([[0, 0], [0, 1], [1, 1], [1, 0]]), 0],
+                               [points(0, 0), 0]], dtype=np.dtype('O'))
 
 det_types = (det_bbox, det_poly, det_point, det_bbox_poly, det_bbox_point, det_poly_point, det_bbox_poly_point)
 gt_types = (gt_bbox, gt_poly, gt_point, gt_bbox_poly, gt_bbox_point, gt_poly_point, gt_bbox_poly_point)
