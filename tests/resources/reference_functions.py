@@ -1,20 +1,20 @@
 import numpy as np
-
-from playground_metrics.utils.geometry_utils import Polygon, BoundingBox
+from pygeos.lib import Geometry
+from pygeos import centroid, get_coordinates, intersection, area, union, distance, box, is_empty
 
 
 def bbox_to_polygon(bbox):
-    if isinstance(bbox[0], BoundingBox):
-        return Polygon(list(bbox[0]._internal.exterior.coords))
+    if isinstance(bbox[0], Geometry):
+        return bbox[0]
     elif isinstance(bbox, (list, tuple, np.ndarray)):
-        return Polygon(list(BoundingBox(*bbox[:4])._internal.exterior.coords))
+        return box(*bbox[:4])[0]
 
 
 def bbox_to_point(bbox):
-    if isinstance(bbox[0], BoundingBox):
-        return bbox[0].centroid
+    if isinstance(bbox[0], Geometry):
+        return centroid(bbox[0])
     elif isinstance(bbox, (list, tuple, np.ndarray)):
-        return BoundingBox(*bbox[:4]).centroid
+        return centroid(box(*bbox[:4]))
 
 
 def sort_detection_by_confidence(detections):
@@ -26,9 +26,11 @@ def sort_detection_by_confidence(detections):
 def convert_point_to_constant_box(input_array, box_size):
     input_array = np.copy(input_array)
     for i in range(input_array.shape[0]):
-        x, y = input_array[i, 0].centroid.x, input_array[i, 0].centroid.y
-        input_array[i, 0] = BoundingBox(x - (box_size / 2), y - (box_size / 2),
-                                        x + (box_size / 2), y + (box_size / 2))
+        x, y = get_coordinates(centroid(input_array[i, 0]))[0]
+        input_array[i, 0] = box(x - (box_size / 2),
+                                y - (box_size / 2),
+                                x + (box_size / 2),
+                                y + (box_size / 2))
 
     return input_array
 
@@ -65,7 +67,7 @@ def naive_compute_iou_matrix(sorted_detections, ground_truths):
     # Naive iterative IoU matrix construction (Note: we iterate over the sorted detections)
     for k, ground_truth in enumerate(ground_truths):
         for m, detection in enumerate(sorted_detections):
-            iou[m, k] = detection[0].intersection_over_union(ground_truth[0])
+            iou[m, k] = area(intersection(detection[0], ground_truth[0])) / area(union(detection[0], ground_truth[0]))
     return iou
 
 
@@ -101,7 +103,7 @@ def naive_compute_distance_similarity_matrix(sorted_detections, ground_truths):
     # Naive iterative distance matrix construction (Note: we iterate over the sorted detections)
     for k, ground_truth in enumerate(ground_truths):
         for m, detection in enumerate(sorted_detections):
-            distance_matrix[m, k] = detection[0].distance(ground_truth[0])
+            distance_matrix[m, k] = distance(centroid(detection[0]), centroid(ground_truth[0]))
     return 1 - distance_matrix
 
 
@@ -137,15 +139,17 @@ def naive_compute_threshold_distance_similarity_matrix(sorted_detections, ground
     # Naive iterative distance matrix construction (Note: we iterate over the sorted detections)
     for k, ground_truth in enumerate(ground_truths):
         for m, detection in enumerate(sorted_detections):
-            if np.absolute(detection[0].centroid.x - ground_truth[0].centroid.x) > threshold or \
-                    np.absolute(detection[0].centroid.y - ground_truth[0].centroid.y) > threshold:
+            detection_x, detection_y = get_coordinates(centroid(detection[0]))
+            ground_truth_x, ground_truth_y = get_coordinates(centroid(ground_truth[0]))
+            if np.absolute(detection_x - ground_truth_x) > threshold \
+                    or np.absolute(detection_y - ground_truth_y) > threshold:
                 distance_matrix[m, k] = np.inf
             else:
-                distance_matrix[m, k] = detection[0].distance(ground_truth[0])
+                distance_matrix[m, k] = distance(centroid(detection[0]), centroid(ground_truth[0]))
     return 1 - distance_matrix
 
 
-def naive_compute_thresholded_distance_similarity_matrix(sorted_detections, ground_truths, threshold):
+def naive_compute_threshold_distance_similarity_matrix(sorted_detections, ground_truths, threshold):
     """Computes a similarity based on euclidean distance between all pairs of geometries in a naive fashion.
 
     Args:
@@ -177,9 +181,9 @@ def naive_compute_thresholded_distance_similarity_matrix(sorted_detections, grou
     # Naive iterative distance matrix construction (Note: we iterate over the sorted detections)
     for k, ground_truth in enumerate(ground_truths):
         for m, detection in enumerate(sorted_detections):
-            distance_matrix[m, k] = detection[0].distance(ground_truth[0])
+            distance_matrix[m, k] = distance(centroid(detection[0]), centroid(ground_truth[0]))
 
-    distance_matrix[distance_matrix > threshold] = np.inf
+    distance_matrix[distance_matrix > (np.sqrt(2) * threshold)] = np.inf
 
     return 1 - distance_matrix
 
@@ -216,11 +220,11 @@ def naive_compute_point_in_box_distance_similarity_matrix(sorted_detections, gro
     # Naive iterative distance matrix construction (Note: we iterate over the sorted detections)
     for k, ground_truth in enumerate(ground_truths):
         for m, detection in enumerate(sorted_detections):
-            distance_matrix[m, k] = detection[0].distance(ground_truth[0])
+            distance_matrix[m, k] = distance(centroid(detection[0]), centroid(ground_truth[0]))
 
     for i in range(distance_matrix.shape[0]):
         for j in range(distance_matrix.shape[1]):
-            if sorted_detections[i, 0].centroid.intersection(ground_truths[j, 0]).is_empty:
+            if is_empty(intersection(centroid(sorted_detections[i, 0]), ground_truths[j, 0])):
                 distance_matrix[i, j] = np.inf
 
     return 1 - distance_matrix

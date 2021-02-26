@@ -1,8 +1,10 @@
 import numpy as np
+from pygeos import area
+
 from tests.resources.reference_functions import naive_compute_iou_matrix, sort_detection_by_confidence
 
 from playground_metrics.match_detections import MatchEngineIoU
-from playground_metrics.utils.geometry_utils import convert_to_bounding_box
+from playground_metrics.utils.conversion import convert_to_bounding_box
 
 detections = np.concatenate((10 * np.array([[14.5, 0, 26, 5],
                                             [34, 41, 36, 43],
@@ -31,7 +33,7 @@ gt = 10 * np.array([[5, 2, 15, 9],
 detections = convert_to_bounding_box(detections)
 gt = convert_to_bounding_box(gt)
 
-gt_mean_area = np.array([det[0].area for det in gt]).mean()
+gt_mean_area = area(gt).mean()
 
 
 class TestMatchEngineBbox:
@@ -147,11 +149,11 @@ class TestMatchEngineBboxIIoU:
     def test_rtree_iou_matrix(self):
         matcher = MatchEngineIoU(0.1, 'coco')
         ref_iou = naive_compute_iou_matrix(sort_detection_by_confidence(detections), gt) * \
-            (gt_mean_area / np.array([det[0].area for det in gt]))
+            (gt_mean_area / area(gt[:, 0]))
         iou = matcher.compute_similarity_matrix(detections, gt, label_mean_area=gt_mean_area)
         print(iou)
         print(ref_iou)
-        assert np.all(iou == ref_iou)
+        assert np.all(iou[np.logical_not(np.isinf(iou))] == ref_iou[np.logical_not(np.isinf(iou))])
 
     def test_match_coco_at_001(self):
         matcher = MatchEngineIoU(0.01, 'coco')
