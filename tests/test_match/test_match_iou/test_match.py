@@ -1,7 +1,8 @@
 import os.path
+from sys import maxsize
 
 import numpy as np
-from pytest import raises
+from pytest import raises, mark
 from tests.test_match.test_match_iou.test_match_bbox import gt_mean_area
 from tests.test_match.test_match_iou.test_match_bbox import detections as detections_bbox
 from tests.test_match.test_match_iou.test_match_bbox import gt as gt_bbox
@@ -158,9 +159,11 @@ class TestMatchScalability:
         matcher = MatchEngineIoU(threshold, method)
         matcher.match(self.data_detect_conv, self.data_detect_conv[:, (True, False, True)])
 
+    @mark.skipif(maxsize <= 2**32)
     def test_match_xview_at_001(self):
         self._make_scale_match(0.01, 'xview')
 
+    @mark.skipif(maxsize <= 2**32)
     def test_match_coco_at_001(self):
         self._make_scale_match(0.01, 'coco')
 
