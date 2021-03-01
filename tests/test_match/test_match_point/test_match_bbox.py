@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 from pygeos import area
-
 from tests.resources.reference_functions import naive_compute_threshold_distance_similarity_matrix, \
     sort_detection_by_confidence, naive_compute_point_in_box_distance_similarity_matrix, \
     naive_compute_constant_box_similarity_matrix

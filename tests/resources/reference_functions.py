@@ -149,7 +149,7 @@ def naive_compute_threshold_distance_similarity_matrix(sorted_detections, ground
     return 1 - distance_matrix
 
 
-def naive_compute_threshold_distance_similarity_matrix(sorted_detections, ground_truths, threshold):
+def naive_compute_thresholded_distance_similarity_matrix(sorted_detections, ground_truths, threshold):
     """Computes a similarity based on euclidean distance between all pairs of geometries in a naive fashion.
 
     Args:

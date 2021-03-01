@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from pygeos import area, is_empty, intersection
 
-from .utils.geometry import GeometryType, intersection_over_union, is_type, euclidean_distance, as_boxes, point_to_box, \
-    as_points
+from .utils.geometry import GeometryType, intersection_over_union, is_type, euclidean_distance, as_boxes, \
+    point_to_box, as_points
 
 
 class MatchEngineBase(ABC):

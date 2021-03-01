@@ -1,6 +1,5 @@
 import numpy as np
 from pygeos import area
-
 from tests.resources.reference_functions import naive_compute_iou_matrix, sort_detection_by_confidence
 
 from playground_metrics.match_detections import MatchEngineIoU
