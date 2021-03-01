@@ -290,17 +290,17 @@ class MeanAveragePrecisionMetric:
 
                 # Compute the Precision(Recall) function
                 precision = tp_sum / (tp_sum + fp_sum + np.spacing(1))
-                recall = tp_sum / self._number_of_ground_truths[ground_truth_label]
+                recall = tp_sum / (self._number_of_ground_truths[ground_truth_label] + np.spacing(1))
 
                 # Compute the precision and recall
                 # For precision tp is the number of detections matched to the ground truth (unique, non-unique matches)
                 tp = np.sum(self._detection_matched[ground_truth_label])
                 p = len(self._detection_matched[ground_truth_label])
-                self.precision_per_class[ground_truth_label] = (tp / p).item()
+                self.precision_per_class[ground_truth_label] = (tp / (p + np.spacing(1))).item()
                 # For recall tp is the number of ground-truth targets matched to detections
                 tp = np.sum(self._ground_truth_matched[ground_truth_label])
                 a = self._number_of_ground_truths[ground_truth_label]
-                self.recall_per_class[ground_truth_label] = (tp / a).item()
+                self.recall_per_class[ground_truth_label] = (tp / (a + np.spacing(1))).item()
 
                 # Average precision and mAP computation
                 precision, recall = self._remove_jaggedness(precision, recall)
