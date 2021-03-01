@@ -139,8 +139,8 @@ class TestScoreSynth:
                                                      [18, 10, 26, 15, 0],
                                                      [18, 10, 26, 15, 0]])
         _ = map_computer.compute()
-        assert map_computer.precision_per_class[0] == 1.0
-        assert map_computer.recall_per_class[0] == 1.0
+        assert np.allclose(map_computer.precision_per_class[0], 1.0)
+        assert np.allclose(map_computer.recall_per_class[0], 1.0)
         assert map_computer.number_true_detection_per_class[0] == 1
         assert map_computer.number_false_detection_per_class[0] == 0
         assert map_computer.number_found_ground_truth_per_class[0] == 5
@@ -152,8 +152,8 @@ class TestScoreSynth:
                              [18, 10, 26, 15, 1, 0],
                              [18, 10, 26, 15, 1, 0]], [[0, 0, 26, 26, 0]])
         _ = map_computer.compute()
-        assert map_computer.precision_per_class[0] == 1.0
-        assert map_computer.recall_per_class[0] == 1.0
+        assert np.allclose(map_computer.precision_per_class[0], 1.0)
+        assert np.allclose(map_computer.recall_per_class[0], 1.0)
         assert map_computer.number_true_detection_per_class[0] == 5
         assert map_computer.number_false_detection_per_class[0] == 0
         assert map_computer.number_found_ground_truth_per_class[0] == 1
