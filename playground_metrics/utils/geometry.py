@@ -1,6 +1,8 @@
 from enum import Enum
+from os import cpu_count
 from typing import Sequence
 
+import dask.array
 import numpy as np
 from pygeos import intersection, union, area, STRtree, get_type_id, get_coordinates, box, centroid, bounds, distance, \
     prepare
@@ -28,38 +30,59 @@ def _sanitize(x):
 
 class _IntersectionOverUnionRTree:
     @staticmethod
+    def _area_op_threaded(operation, candidates, x, y, default):
+        areas = default((len(x), len(y)))
+
+        # Define the operation
+        x_dask = dask.array.from_array(x[candidates[:, 0]], chunks=int(len(x[candidates[:, 0]]) // cpu_count()))
+        y_dask = dask.array.from_array(y[candidates[:, 1]], chunks=int(len(y[candidates[:, 1]]) // cpu_count()))
+        res = x_dask.map_blocks(operation, y_dask, dtype=object)
+        res = res.map_blocks(area, dtype=float).squeeze()
+
+        areas[candidates[:, 0], candidates[:, 1]] = res.compute(scheduler="threads",
+                                                                optimize_graph=True,
+                                                                num_workers=cpu_count())
+        return areas
+
+    @staticmethod
     def _area_op(operation, candidates, x, y, default):
         areas = default((len(x), len(y)))
         areas[candidates[:, 0], candidates[:, 1]] = area(operation(x[candidates[:, 0]], y[candidates[:, 1]])).squeeze()
         return areas
 
-    def _call(self, x, y):
+    def _call(self, x, y, force_thread=False):
         x, y = _sanitize(x), _sanitize(y)
 
         tree = STRtree(y)
         candidates = tree.query_bulk(x, predicate='intersects').transpose()
 
-        return self._area_op(intersection, candidates, x, y, np.zeros) / self._area_op(union, candidates, x, y, np.ones)
+        area_op = self._area_op_threaded \
+            if force_thread else self._area_op_threaded \
+            if x.shape[0] * y.shape[0] > (cpu_count() * 100) else self._area_op
 
-    def __call__(self, x, y):
+        return area_op(intersection, candidates, x, y, np.zeros) / area_op(union, candidates, x, y, np.ones)
+
+    def __call__(self, x, y, force_thread=False):
         if x.size == 0 or y.size == 0:
             return np.zeros((len(x), len(y)))
 
         if x.size == 1 and y.size == 1:
-            return self._call(x, y)
+            return self._call(x, y, force_thread=force_thread)
 
-        return self._call(x, y)
+        return self._call(x, y, force_thread=force_thread)
 
 
 _iou_rtree_computer = _IntersectionOverUnionRTree()
 
 
-def intersection_over_union(x, y):
+def intersection_over_union(x, y, force_thread=False):
     """Compute the intersection-over-union in between every possible geometry pairs from two arrays of geometries.
 
     Args:
         x (ArrayLike): An array of geometries.
         y (ArrayLike): An array of geometries.
+        force_thread (bool): Force the use of the threaded implementation. Note that this can incur a significant
+            computational cost for small input and fail on input too small to be reliably chunked.
 
     Returns:
         numpy.ndarray: An intersection-over-union matrix.
@@ -73,10 +96,27 @@ def intersection_over_union(x, y):
 
     x, y = np.asarray(x), np.asarray(y)
 
-    return _iou_rtree_computer(x, y)
+    return _iou_rtree_computer(x, y, force_thread=force_thread)
 
 
 class _EuclideanDistanceRTree:
+    @staticmethod
+    def _distance_op_threaded(candidates, x, y):
+        point_x = as_points(x)
+        point_y = as_points(y)
+
+        areas = np.Inf * np.ones((len(x), len(y)))
+
+        # Define the operation
+        x_dask = dask.array.from_array(point_x[candidates[:, 0]], chunks=int(len(x[candidates[:, 0]]) // cpu_count()))
+        y_dask = dask.array.from_array(point_y[candidates[:, 1]], chunks=int(len(y[candidates[:, 1]]) // cpu_count()))
+        res = x_dask.map_blocks(distance, y_dask, dtype=float).squeeze()
+
+        areas[candidates[:, 0], candidates[:, 1]] = res.compute(scheduler="threads",
+                                                                optimize_graph=True,
+                                                                num_workers=cpu_count())
+        return areas
+
     @staticmethod
     def _distance_op(candidates, x, y):
         point_x = as_points(x)
@@ -89,33 +129,39 @@ class _EuclideanDistanceRTree:
 
         return areas
 
-    def _call(self, x, y):
+    def _call(self, x, y, force_thread=False):
         x, y = _sanitize(x), _sanitize(y)
 
         tree = STRtree(y)
         candidates = tree.query_bulk(x).transpose()
 
-        return 1 - self._distance_op(candidates, x, y)
+        distance_op = self._distance_op_threaded \
+            if force_thread else self._distance_op_threaded \
+            if x.shape[0] * y.shape[0] > (cpu_count() * 100) else self._distance_op
 
-    def __call__(self, x, y):
+        return 1 - distance_op(candidates, x, y)
+
+    def __call__(self, x, y, force_thread=False):
         if x.size == 0 or y.size == 0:
             return np.zeros((len(x), len(y)))
 
         if x.size == 1 and y.size == 1:
-            return self._call(x, y)
+            return self._call(x, y, force_thread=force_thread)
 
-        return self._call(x, y)
+        return self._call(x, y, force_thread=force_thread)
 
 
 _distance_rtree_computer = _EuclideanDistanceRTree()
 
 
-def euclidean_distance(x, y):
+def euclidean_distance(x, y, force_thread=False):
     """Compute the euclidean distance in between every possible centroid pairs from two arrays of geometries.
 
     Args:
         x (ArrayLike): An array of geometries.
         y (ArrayLike): An array of geometries.
+        force_thread (bool): Force the use of the threaded implementation. Note that this can incur a significant
+            computational cost for small input and fail on input too small to be reliably chunked.
 
     Returns:
         numpy.ndarray: An intersection-over-union matrix.
@@ -129,7 +175,7 @@ def euclidean_distance(x, y):
 
     x, y = np.asarray(x), np.asarray(y)
 
-    return _distance_rtree_computer(x, y)
+    return _distance_rtree_computer(x, y, force_thread=force_thread)
 
 
 def point_to_box(x, width=64., height=64.):

@@ -5,7 +5,8 @@ from setuptools import setup, find_packages
 
 REQUIRED_PACKAGES = [
     'numpy>=1.19',
-    'pygeos~=0.9'
+    'pygeos~=0.9',
+    'dask[array]>=2021.02'
 ]
 
 
