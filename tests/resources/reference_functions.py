@@ -139,8 +139,9 @@ def naive_compute_threshold_distance_similarity_matrix(sorted_detections, ground
     # Naive iterative distance matrix construction (Note: we iterate over the sorted detections)
     for k, ground_truth in enumerate(ground_truths):
         for m, detection in enumerate(sorted_detections):
-            detection_x, detection_y = get_coordinates(centroid(detection[0]))
-            ground_truth_x, ground_truth_y = get_coordinates(centroid(ground_truth[0]))
+            detection_x, detection_y = get_coordinates(centroid(detection[0])).T
+            ground_truth_x, ground_truth_y = get_coordinates(centroid(ground_truth[0])).T
+
             if np.absolute(detection_x - ground_truth_x) > threshold \
                     or np.absolute(detection_y - ground_truth_y) > threshold:
                 distance_matrix[m, k] = np.inf
