@@ -9,6 +9,8 @@ from pygeos import intersection, union, area, STRtree, get_type_id, get_coordina
 
 
 class GeometryType(Enum):
+    """An enumeration of all  geometry types available in GEOS with their respective GEOS numeric code."""
+
     NONE = -1
     POINT = 0
     LINESTRING = 1
@@ -210,7 +212,7 @@ def is_type(x, *geometry_types):
 
     """
     types = get_type_id(x)
-    return sum([types == geometry_type.value for geometry_type in geometry_types]).astype(bool)
+    return sum(types == geometry_type.value for geometry_type in geometry_types).astype(bool)
 
 
 def as_points(x):

@@ -1,6 +1,5 @@
 import numpy as np
 from pygeos import area
-
 from tests.resources.reference_functions import bbox_to_polygon, naive_compute_iou_matrix, sort_detection_by_confidence
 from tests.test_match.test_match_iou.test_match_bbox import detections, gt, gt_mean_area
 
