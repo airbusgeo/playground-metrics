@@ -4,9 +4,9 @@ import re
 from setuptools import setup, find_packages
 
 REQUIRED_PACKAGES = [
-    'numpy>=1.15.4',
-    'shapely~=1.7',
-    'rtree>=0.8.3',
+    'numpy>=1.19',
+    'pygeos~=0.9',
+    'dask[array]>=2021.02'
 ]
 
 

@@ -1,8 +1,9 @@
 import pytest
 import numpy as np
 
-from playground_metrics.utils.geometry_utils import BoundingBox, Polygon, Point, \
-    get_type_and_convert, convert_to_bounding_box, convert_to_polygon, convert_to_point
+from playground_metrics.utils.conversion import GeometryType, get_type_and_convert, convert_to_bounding_box, \
+    convert_to_polygon, convert_to_point
+from playground_metrics.utils.geometry import is_type
 
 vector_input_list_score_class = [[[[[0, 0], [0, 1], [1, 1], [1, 0]]], 0.2, 0],
                                  [[[[0, 0], [0, 1], [1, 1], [1, 0]]], 0.2, 0]]
@@ -69,7 +70,7 @@ point_input_list_class_tuple = [[0, 1, (0, )],
 
 
 class TestTypeDetection:
-    class_conv = {'bbox': BoundingBox, 'polygon': Polygon, 'point': Point}
+    class_conv = {'bbox': GeometryType.POLYGON, 'polygon': GeometryType.POLYGON, 'point': GeometryType.POINT}
     class_start = {'bbox': 4, 'polygon': 1, 'point': 2}
 
     def test_number_dimension_mismatch(self):
@@ -111,8 +112,7 @@ class TestTypeDetection:
         print(data_in, data_conv)
         print(type_, true_type)
         assert true_type == type_
-        assert np.all(np.array([isinstance(data_conv[i, 0], self.class_conv[true_type])
-                                for i in range(data_conv.shape[0])]))
+        assert np.all(is_type(data_conv[:, 0], self.class_conv[true_type]))
         assert np.all(np.array(data_in, dtype=np.dtype('O'))[:, self.class_start[true_type]:] == data_conv[:, 1:])
 
     def test_vector_input_list_score_class(self):
@@ -189,7 +189,7 @@ class TestTypeDetection:
 
 
 class TestConversion:
-    class_conv = {'bbox': BoundingBox, 'polygon': Polygon, 'point': Point}
+    class_conv = {'bbox': GeometryType.POLYGON, 'polygon': GeometryType.POLYGON, 'point': GeometryType.POINT}
     class_conv_fn = {'bbox': convert_to_bounding_box, 'polygon': convert_to_polygon, 'point': convert_to_point}
     class_start = {'bbox': 4, 'polygon': 1, 'point': 2}
 
@@ -213,8 +213,7 @@ class TestConversion:
         # Test actual conversion
         data_conv = self.class_conv_fn[true_type](data_in)
         print(data_in, data_conv)
-        assert np.all(np.array([isinstance(data_conv[i, 0], self.class_conv[true_type])
-                                for i in range(data_conv.shape[0])]))
+        assert np.all(is_type(data_conv[:, 0], self.class_conv[true_type]))
         data_in = np.array(data_in)
         if len(data_in.shape) > 2:
             object_array = np.ndarray((data_in.shape[0], 1), dtype=np.dtype('O'))

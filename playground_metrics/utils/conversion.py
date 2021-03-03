@@ -1,14 +1,13 @@
 from collections.abc import Sized
 
 import numpy as np
-import shapely.ops
-import shapely.geometry
-
-from ..exception import InvalidGeometryError
-from .geometry import Point, Polygon, BoundingBox, Geometry
+from pygeos import polygons, points, box, is_valid, make_valid, get_num_geometries, get_geometry
 
 
 # Helpers functions
+from playground_metrics.utils.geometry import is_type, GeometryType
+
+
 def get_type_and_convert(input_array, trim_invalid_geometry=False, autocorrect_invalid_geometry=False):
     r"""Automatically find the geometry type from the input array shape and convert it to a geometry array.
 
@@ -92,7 +91,7 @@ def get_type_and_convert(input_array, trim_invalid_geometry=False, autocorrect_i
                 input_array = convert_to_polygon(input_array, trim_invalid_geometry=trim_invalid_geometry,
                                                  autocorrect_invalid_geometry=autocorrect_invalid_geometry)
             else:
-                # Resonable guess is the first element is a number -> It's a Point ndarray
+                # Reasonable guess is the first element is a number -> It's a Point ndarray
                 type_ = 'point'
                 input_array = convert_to_point(input_array, trim_invalid_geometry=trim_invalid_geometry)
         elif input_array.shape[1] == 4:
@@ -129,6 +128,28 @@ def get_type_and_convert(input_array, trim_invalid_geometry=False, autocorrect_i
                          'Expected a 2D array, found {}D.'.format(len(input_array.shape)))
 
     return type_, input_array
+
+
+def _clean_multi_geometries(object_array):
+    """Cleanup a sequence of geometries to remove multi geometries.
+
+    Args:
+        object_array (numpy.ndarray): The object array to cleanup
+
+    Returns:
+        numpy.ndarray: Cleaned-up object array.
+
+    """
+    # Handle multi-geometries
+    geometries = object_array[:, 0]
+    num_geometries = get_num_geometries(geometries)
+    for index in np.nonzero(num_geometries > 1)[0]:
+        split_geometries = [np.concatenate((get_geometry(geometries[index], i), object_array[index, 1:]))
+                            for i in range(num_geometries[index])]
+        object_array[index] = split_geometries[0]
+        object_array = np.concatenate((object_array, split_geometries[1:, :]))
+
+    return geometries
 
 
 def convert_to_polygon(input_array, trim_invalid_geometry=False, autocorrect_invalid_geometry=False):
@@ -176,47 +197,22 @@ def convert_to_polygon(input_array, trim_invalid_geometry=False, autocorrect_inv
                          'Expected 1, found {}.'.format(len(input_array.shape)))
 
     object_array = np.ndarray((input_array.shape[0], input_array.shape[1]), dtype=np.dtype('O'))
-    to_trim = []
-    to_add = []
-    for i in range(input_array.shape[0]):
-        try:
-            if len(input_array[i, 0]) > 1:
-                list_ = [Polygon(input_array[i, 0][0], *input_array[i, 0][1:])]
-                list_.extend(input_array[i, 1:])
-            else:
-                list_ = [Polygon(input_array[i, 0][0])]
-                list_.extend(input_array[i, 1:])
-            object_array[i] = np.array(list_, dtype=np.dtype('O'))
-        except InvalidGeometryError as e:
-            if autocorrect_invalid_geometry:
-                if len(shapely.geometry.Polygon(input_array[i, 0][0], input_array[i, 0][1:]).interiors) > 0:
-                    raise e
-                ext = shapely.geometry.Polygon(input_array[i, 0][0], input_array[i, 0][1:]).exterior
-                shapely_polygon_list = \
-                    shapely.ops.polygonize(shapely.geometry.LineString(ext.coords[:] + ext.coords[0:1]).intersection(
-                        shapely.geometry.LineString(ext.coords[:] + ext.coords[0:1])))
-                polygon_list = []
-                try:
-                    for polygon in shapely_polygon_list:
-                        list_ = [Polygon(polygon.exterior.coords)]
-                        list_.extend(input_array[i, 1:])
-                        polygon_list.append(list_)
-                except InvalidGeometryError:
-                    if trim_invalid_geometry:
-                        to_trim.append(i)
-                    else:
-                        raise e
-                else:
-                    to_trim.append(i)
-                    to_add.extend(polygon_list)
-            else:
-                if trim_invalid_geometry:
-                    to_trim.append(i)
-                else:
-                    raise e
-    return np.concatenate((np.delete(object_array, to_trim, axis=0),
-                           np.array(to_add).reshape(-1, object_array.shape[1])),
-                          axis=0)
+    for i, coordinate in enumerate(input_array[:, 0]):
+        line = [polygons(np.array(coordinate[0], dtype=np.float64), np.array(coordinate[1:], dtype=np.float64))] \
+            if len(coordinate) > 1 else [polygons(np.array(coordinate[0], dtype=np.float64))]
+        line.extend(input_array[i, 1:])
+        object_array[i] = np.array(line, dtype=np.dtype('O'))
+
+    if autocorrect_invalid_geometry:
+        object_array[:, 0] = _clean_multi_geometries(make_valid(object_array[:, 0]))
+
+    if trim_invalid_geometry:
+        object_array = object_array[is_valid(object_array[:, 0]), :]
+
+    if not np.all(is_type(object_array[:, 0], GeometryType.POLYGON)):
+        raise ValueError('Conversion is impossible: Some geometries could not be converted to valid polygons.')
+
+    return object_array
 
 
 def convert_to_bounding_box(input_array, trim_invalid_geometry=False, autocorrect_invalid_geometry=False):
@@ -246,20 +242,21 @@ def convert_to_bounding_box(input_array, trim_invalid_geometry=False, autocorrec
     if len(input_array.shape) == 1 or len(input_array.shape) > 2:
         raise ValueError('Invalid array number of dimensions: '
                          'Expected a 2D array, found {}D.'.format(len(input_array.shape)))
-    object_array = np.ndarray((input_array.shape[0], input_array.shape[1] - 3), dtype=np.dtype('O'))
-    to_trim = []
-    for i in range(input_array.shape[0]):
-        try:
-            list_ = [BoundingBox(*input_array[i, :4])]
-            list_.extend(input_array[i, 4:])
-            object_array[i] = np.array(list_, dtype=np.dtype('O'))
-        except InvalidGeometryError as e:
-            if trim_invalid_geometry:
-                to_trim.append(i)
-            else:
-                raise e
 
-    return np.delete(object_array, to_trim, axis=0)
+    coordinates_array = input_array[:, :4].astype(np.float64)
+
+    object_array = np.ndarray((input_array.shape[0], input_array.shape[1] - 3), dtype=np.dtype('O'))
+    object_array[:, 0] = box(coordinates_array[:, 0],
+                             coordinates_array[:, 1],
+                             coordinates_array[:, 2],
+                             coordinates_array[:, 3])
+
+    object_array[:, 1:] = input_array[:, 4:]
+
+    if trim_invalid_geometry:
+        object_array = object_array[is_valid(object_array[:, 0]), :]
+
+    return object_array
 
 
 def convert_to_point(input_array, trim_invalid_geometry=False, autocorrect_invalid_geometry=False):
@@ -289,17 +286,14 @@ def convert_to_point(input_array, trim_invalid_geometry=False, autocorrect_inval
     if len(input_array.shape) == 1 or len(input_array.shape) > 2:
         raise ValueError('Invalid array number of dimensions: '
                          'Expected a 2D array, found {}D.'.format(len(input_array.shape)))
-    object_array = np.ndarray((input_array.shape[0], input_array.shape[1] - 1), dtype=np.dtype('O'))
-    to_trim = []
-    for i in range(input_array.shape[0]):
-        try:
-            list_ = [Point(*input_array[i, :2])]
-            list_.extend(input_array[i, 2:])
-            object_array[i] = np.array(list_, dtype=np.dtype('O'))
-        except InvalidGeometryError as e:
-            if trim_invalid_geometry:
-                to_trim.append(i)
-            else:
-                raise e
 
-    return np.delete(object_array, to_trim, axis=0)
+    coordinates_array = input_array[:, :2].astype(np.float64)
+
+    object_array = np.ndarray((input_array.shape[0], input_array.shape[1] - 1), dtype=np.dtype('O'))
+    object_array[:, 0] = points(coordinates_array)
+    object_array[:, 1:] = input_array[:, 2:]
+
+    if trim_invalid_geometry:
+        object_array = object_array[is_valid(object_array[:, 0]), :]
+
+    return object_array
