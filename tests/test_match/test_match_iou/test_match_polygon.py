@@ -1,4 +1,5 @@
 import numpy as np
+from pygeos import area
 from tests.resources.reference_functions import bbox_to_polygon, naive_compute_iou_matrix, sort_detection_by_confidence
 from tests.test_match.test_match_iou.test_match_bbox import detections, gt, gt_mean_area
 
@@ -121,7 +122,7 @@ class TestMatchEngineBboxIIoU:
     def test_rtree_iou_matrix(self):
         matcher = MatchEngineIoU(0.1, 'coco')
         ref_iou = naive_compute_iou_matrix(sort_detection_by_confidence(detections), gt) * \
-            (gt_mean_area / np.array([det[0].area for det in gt]))
+            (gt_mean_area / area(gt[:, 0]))
         iou = matcher.compute_similarity_matrix(detections, gt, label_mean_area=gt_mean_area)
         print(iou)
         print(ref_iou)
