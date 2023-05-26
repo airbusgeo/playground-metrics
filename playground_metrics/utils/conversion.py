@@ -1,7 +1,7 @@
 from collections.abc import Sized
 
 import numpy as np
-from pygeos import polygons, points, box, is_valid, make_valid, get_num_geometries, get_geometry
+from pygeos import linearrings, polygons, points, box, is_valid, make_valid, get_num_geometries, get_geometry
 
 
 # Helpers functions
@@ -198,8 +198,8 @@ def convert_to_polygon(input_array, trim_invalid_geometry=False, autocorrect_inv
 
     object_array = np.ndarray((input_array.shape[0], input_array.shape[1]), dtype=np.dtype('O'))
     for i, coordinate in enumerate(input_array[:, 0]):
-        line = [polygons(np.array(coordinate[0], dtype=np.float64), np.array(coordinate[1:], dtype=np.float64))] \
-            if len(coordinate) > 1 else [polygons(np.array(coordinate[0], dtype=np.float64))]
+        line = [polygons(linearrings(coordinate[0]), holes=[linearrings(hole) for hole in coordinate[1:]])] \
+            if len(coordinate) > 1 else [polygons(linearrings(coordinate[0]))]
         line.extend(input_array[i, 1:])
         object_array[i] = np.array(line, dtype=np.dtype('O'))
 
